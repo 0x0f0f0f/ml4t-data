@@ -152,6 +152,16 @@ def test_unavailable_optional_provider_alias_is_not_fatal():
     assert not manager.is_available("databento_main")
 
 
+def test_provider_extra_sets_how_ohlc_violations_are_handled():
+    """`ohlc_mode` in a provider's extra reaches its validation, which keeps or drops bad rows."""
+    manager = ProviderManager({"providers": {"yahoo": {"extra": {"ohlc_mode": "warn"}}}})
+    assert manager.get_provider("yahoo").ohlc_mode == "warn"
+    assert ProviderManager({"providers": {}}).get_provider("yahoo").ohlc_mode == "strict"
+
+    with pytest.raises(ValueError, match="ohlc_mode must be strict, drop or warn"):
+        ProviderManager({"providers": {"yahoo": {"extra": {"ohlc_mode": "loose"}}}}).get_provider("yahoo")
+
+
 class TestMassiveProviderConfig:
     """Tests for Massive provider config and availability wiring."""
 
